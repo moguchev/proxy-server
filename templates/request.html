@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Request Details</title>
+    <style type="text/css">
+        table {
+            width: 300px; /* Ширина таблицы */
+            border-top: 2px solid #000; /* Линия сверху таблицы */
+        }
+        td, th {
+            padding: 3px; /* Поля вокруг содержимого ячеек */
+            border-bottom: 2px solid #000; /* Линия внизу таблицы */
+        }
+        th {
+            text-align: left; /* Выравнивание текста по левому краю */
+            border-bottom: 1px solid #000; /* Линия под верхним заголовком */
+        }
+    </style>
+</head>
+<body>
+    <table style="width: 100%">
+        <thead>
+        <tr>
+            <td>ID</td>
+            <td>HTTPS</td>
+            <td>Path</td>
+        </tr>
+        </thead>
+        <tr>
+            <td id="req_id">{{.Request.ID}}</td>
+            <td id="is_https">{{.Request.IsHTTPS}}</td>
+            <td id="req_path">{{.Request.Path}}</td>
+        </tr>
+    </table>
+    <table  style="width: 100%">
+        <thead>
+        <tr>
+            <td>Key</td>
+            <td>Value</td>
+        </tr>
+        </thead>
+        <tr>
+            <td>Method</td>
+            <td><textarea id="method">{{.Request.Req.Method}}</textarea></td>
+        </tr>
+        <tr>
+            <td>URL</td>
+            <td><textarea cols="30" rows="30" id="url">{{.Request.Req.URL}}</textarea></td>
+        </tr>
+        <tr>
+            <td>Proto</td>
+            <td><textarea id="proto">{{.Request.Req.Proto}}</textarea></td>
+        </tr>
+        <tr>
+            <td>Proto Major</td>
+            <td><textarea id="proto_major">{{.Request.Req.ProtoMajor}}</textarea></td>
+        </tr>
+        <tr>
+            <td>Proto Minor</td>
+            <td><textarea id="proto_minor">{{.Request.Req.ProtoMinor}}</textarea></td>
+        </tr>
+        <tr>
+            <td>Host</td>
+            <td><textarea id="host">{{.Request.Req.Host}}</textarea></td>
+        </tr>
+        {{range $key, $value := .Request.Req.Header}}
+            <tr>
+                <td>{{$key}}</td>
+                <td>
+                    <textarea id="header_{{$key}}">{{range $i, $a := $value}}{{if gt $i 0 }}, {{end}}{{.}}{{end}}</textarea>
+                </td>
+            </tr>
+        {{end}}
+        <tr>
+            <td>Content Length</td>
+            <td><textarea id="content_length">{{.Request.Req.ContentLength}}</textarea></td>
+        </tr>
+        <tr>
+            <td>Transfer Encoding</td>
+            <td><textarea id="transfer_encoding">{{range $i,$a := .Request.Req.TransferEncoding}}{{if gt $i 0 }}, {{end}}{{.}}{{end}}</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>Close</td>
+            <td><textarea id="close">{{if .Request.Req.Close}}True{{else}}False{{end}}</textarea></td>
+        </tr>
+        <tr>
+            <td>Form</td>
+            <td><textarea cols="30" rows="30" id="form">{{.Request.Req.Form}}</textarea></td>
+        </tr>
+        <tr>
+            <td>Post Form</td>
+            <td><textarea cols="30" rows="30" id="post_form">{{.Request.Req.PostForm}}</textarea></td>
+        </tr>
+        <!--here should be multpart form (or no?)-->
+        {{range $key, $value := .Request.Req.Trailer}}
+            <tr>
+                <td>{{$key}}</td>
+                <td>
+                    <textarea id="trailer_{{$key}}">{{range $i, $a := $value}}{{if gt $i 0 }}, {{end}}{{.}}{{end}}</textarea>
+                </td>
+            </tr>
+        {{end}}
+        <tr>
+            <td>Remote Addr</td>
+            <td><textarea id="remote_addr">{{.Request.Req.RemoteAddr}}</textarea></td>
+        </tr>
+        <tr>
+            <td>Request URI</td>
+            <td><textarea id="request_uri">{{.Request.Req.RequestURI}}</textarea></td>
+        </tr>
+    </table>
+    <button id="submit" onclick="SendJSON();">
+        Send
+    </button>
+    <script type="application/javascript">
+        function getNewRequest() {
+            let parsedHeader = {
+                {{range $key, $value := .Request.Req.Header}}
+                    {{$key}} : document.getElementById('header_{{$key}}').value.split(', '),
+                {{end}}
+            };
+            let parsedTrialer = {
+            {{range $key, $value := .Request.Req.Trailer}}
+                {{$key}} : document.getElementById('trailer_{{$key}}').value.split(', '),
+            {{end}}
+            };
+            return {
+                id: parseInt(document.getElementById('req_id').innerText),
+                is_https: document.getElementById('is_https').innerText === "True",
+                path: document.getElementById('req_path').innerText,
+                request: {
+                    method: document.getElementById('method').value,
+                    path: document.getElementById('url').value,
+                    proto: document.getElementById('proto').value,
+                    proto_major: parseInt(document.getElementById('proto_major').value),
+                    proto_minor: parseInt(document.getElementById('proto_minor').value),
+                    host: document.getElementById('host').value,
+                    header: parsedHeader,
+                    body: {{.Request.Req.Body}},
+                    trailer: parsedTrialer,
+                    content_length: parseInt(document.getElementById('content_length').value),
+                    transfer_encoding: document.getElementById('transfer_encoding').value.split(', '),
+                    close: document.getElementById('close').value === 'True',
+                    form: document.getElementById('form').value,
+                    post_form: document.getElementById('post_form').value,
+                    remote_addr: document.getElementById('remote_addr').value,
+                    request_uri: document.getElementById('request_uri').value,
+            }
+        }
+        }
+        function SendJSON() {
+            let request = getNewRequest();
+            fetch('http://localhost:8193/api/request/', {method: 'POST', headers:{}, body: JSON.stringify(request)}).
+            then(response => {return response}).then(
+                (data) => {
+                    const contentType = data.headers.get('Content-Type');
+                    if (contentType.substring(0, 4) === 'text') {
+                        data.text().then((text) => {
+                            document.body.innerHTML = '';
+                            document.body.innerText = text;
+                        });
+                        return;
+                    }
+                    if (contentType === 'application/json') {
+                        data.json().then((text) => {
+                            document.body.innerHTML = '';
+                            document.body.innerText = text;
+                        });
+                        return;
+                    }
+
+                    if (contentType.substring(0, 5) === 'image') {
+                        data.blob().then((blob) => {
+                            let objectURL = URL.createObjectURL(blob);
+                            document.body.innerHTML = '';
+                            let img = document.createElement('img');
+                            img.src = objectURL;
+                            document.body.appendChild(img);
+                        });
+                        return;
+                    }
+
+                    data.arrayBuffer().then((buf) => {
+                        let objectURL = URL.createObjectURL(new Blob([buf]));
+                        document.body.innerHTML = '';
+                        let url = document.createElement('a');
+                        url.href = objectURL;
+                        document.body.appendChild(url);
+                        url.click();
+                    })
+                }
+            )}
+    </script>
+</body>
+</html>

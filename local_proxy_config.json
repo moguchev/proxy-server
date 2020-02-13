@@ -1,0 +1,9 @@
+{
+  "host": "localhost",
+  "https_port": "8192",
+  "dbhost": "0.0.0.0",
+  "dbport": "5432",
+  "dbuser": "db_user",
+  "dbpassword": "db_user",
+  "dbname": "db_user"
+}

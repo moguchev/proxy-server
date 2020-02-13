@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>proxy repeater</title>
+    <style type="text/css">
+        table {
+            width: 300px; /* Ширина таблицы */
+            border-top: 2px solid #000; /* Линия сверху таблицы */
+        }
+        td, th {
+            padding: 3px; /* Поля вокруг содержимого ячеек */
+            border-bottom: 2px solid #000; /* Линия внизу таблицы */
+        }
+        th {
+            text-align: left; /* Выравнивание текста по левому краю */
+            border-bottom: 1px solid #000; /* Линия под верхним заголовком */
+        }
+    </style>
+</head>
+<body>
+    <div id="mainFrame">
+        <table style="width: 100%">
+            <thead>
+            <tr>
+                <td>ID</td>
+                <td>HTTPS</td>
+                <td>Path</td>
+                <td> </td>
+                <td> </td>
+            </tr>
+            </thead>
+        {{range .Requests}}
+            <tr>
+                <td>{{.ID}}</td>
+                <td>
+                    {{if .IsHTTPS }}
+                        True
+                    {{else}}
+                        False
+                    {{end}}
+                </td>
+                <td>{{.Path}}</td>
+                <td>
+                    <a href="/change/{{.ID}}">
+                        <button>Change</button>
+                    </a>
+                </td>
+                <td>
+                    <a href="/repeat/{{.ID}}">
+                        <button>Repeat</button>
+                    </a>
+                </td>
+            </tr>
+        {{end}}
+        </table>
+        <div id="pagination">
+            {{if gt (.Prev) (0) }}
+            <a href="?page={{.Prev}}&rows=10">
+                <button>Back</button>
+            </a>
+            {{end}}
+            {{if ne .Len (0)}}
+                <a href="?page={{.Next}}&rows=10">
+                    <button>Forward</button>
+                </a>
+            {{end}}
+        </div>
+    </div>
+</body>
+</html>
