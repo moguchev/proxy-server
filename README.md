@@ -41,12 +41,18 @@ go run ./cmd/repeater/main.go ./local_repeater_config.json
     Example for _Ubuntu_:
     Settings->Network->Network Proxy->Manual
     ![alt text](./img/proxy_settings.png "Nerwork Proxy")
-  * Import certificate _ca-cert.crt_ into your browser
+  * Import certificate _ca-cert.crt_ into your browser(Recommended to use Mozilla Firefox)
 ---
 
 ## Burp repeater
 
 ### GUI
    Open in your browser http://localhost:8193
-
    ![alt text](./img/localhost_root.png "Index page")
+
+### Note
+If you can't kill docker containers do:
+```sh
+$ sudo systemctl daemon-reload
+$ sudo systemctl restart docker
+```

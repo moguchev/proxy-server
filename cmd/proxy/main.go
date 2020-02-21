@@ -1,24 +1,25 @@
 package main
 
 import (
-	"github.com/moguchev/proxy-server/internal/proxy"
 	"log"
 	"os"
+
+	"github.com/moguchev/proxy-server/internal/proxy"
 )
 
 func main() {
 	pathToConfig := ""
 	if len(os.Args) != 2 {
-		panic("Usage: ./main <path_to_config>")
+		log.Fatalln("Usage: ./main <path_to_config>")
 	} else {
 		pathToConfig = os.Args[1]
 	}
 	serv, err := proxy.NewServer(pathToConfig)
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 	err = serv.Run()
 	if err != nil {
-		log.Println(err)
+		log.Fatalln(err)
 	}
 }
